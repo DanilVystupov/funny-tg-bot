@@ -1,7 +1,7 @@
 const axios = require("axios");
-const { OLLAMA_API_GENERATE, WEATHER_API_URL } = require("../utils/constants");
+const { TOGETHER_API_URL, WEATHER_API_URL } = require("../utils/constants");
 
-async function getWeatherDate(city = 'Санкт-Петербург') {
+async function getWeatherData(city = 'Санкт-Петербург') {
   try {
     const response = await axios.get(WEATHER_API_URL, {
       params: {
@@ -36,103 +36,109 @@ async function getWeatherDate(city = 'Санкт-Петербург') {
 
     // Состояние погоды на каждый час
     const hours = result.forecast.forecastday[0].hour;
-    const hourlyWeatherReports = hours.map((hour) => ({
-      time: hour.time,
-      weatherReport: hour.condition.text
+    const hourlyForecast = hours.map(hour => ({
+      time: hour.time.split(' ')[1], // Оставляем только время
+      temp: Math.round(hour.temp_c),
+      condition: hour.condition.text,
+      chance_of_rain: hour.chance_of_rain
     }));
+
+    // Ключевые часы
+    const keyHours = [6, 9, 12, 15, 18, 21];
+    const keyHourlyForecast = hourlyForecast.filter(hour => 
+      keyHours.includes(parseInt(hour.time.split(':')[0]))
+    );
 
     return {
       date,
-
       maxTemp,
       minTemp,
       maxWind,
       chanceOfRain,
       chanceOfSnow,
       weatherReport,
-
       sunrise,
       sunset,
       moonrise,
       moonset,
-
-      hourlyWeatherReports
+      hourlyForecast: keyHourlyForecast
     }
   } catch (error) {
     console.log('Ошибка при получении прогноза погоды: ', error.message);
+    return null;
   }
 }
 
 async function generateWeatherReport(city = 'Санкт-Петербург') {
-  const {
-    date,
-
-    maxTemp,
-    minTemp,
-    maxWind,
-    chanceOfRain,
-    chanceOfSnow,
-    weatherReport,
-
-    sunrise,
-    sunset,
-    moonrise,
-    moonset,
-
-    hourlyWeatherReports
-  } = await getWeatherDate(city);
+  const weatherData = await getWeatherData(city);
+  
+  if (!weatherData) {
+    return "Не удалось получить данные о погоде. Попробуйте позже!";
+  }
 
   try {
-    const response = await axios.post(OLLAMA_API_GENERATE, {
-      model: 'llama3',
-      prompt: `
-      ПИШИ НА РУССКОМ ЯЗЫКЕ.
-      Ты самый лучший ведущий РУССКОЙ передачи по информированию прогноза погоды на день.
-      Отправь следующим сообщением на русском языке прогноз погоды в городе ${city}, исходя из следующих данных:
-      ${date}: Дата в формате год-месяц-день, например 2025-04-08 это 8 апреля 2025 года,
-      ${maxTemp}: максимальная температура за день
-      ${minTemp}: минимальная температура за день
-      ${maxWind}: максимальная скорость ветра
-      ${chanceOfRain}: шанс того, что будет дождь, например 73
-      ${chanceOfSnow}: шанс того, что будет снег, например 90
-      ${weatherReport}: оценка погоды на день, например Солнечно
-      ${sunrise}: восход солнца
-      ${sunset}: закат солнца
-      ${moonrise}: восход луны
-      ${moonset}: закат луны
+    const hourlyForecastText = weatherData.hourlyForecast.map(hour => 
+      `⏰ ${hour.time}: ${hour.temp}°C, ${hour.condition}${hour.chance_of_rain > 0 ? ` (🌧 ${hour.chance_of_rain}%)` : ''}`
+    ).join('\n');
 
-      Состояние погоды на каждый час, чтобы сообщить пользователю, как примерно будет менять погода, если будет:
-      ${hourlyWeatherReports}
+    const strictPrompt = `
+      Составь подробный и весёлый прогноз погоды на ${weatherData.date} для города ${city}. Используй следующие данные:
 
-      Переведи 12-ти часовой формат (AM/PM) в 24-часовой формат, то есть вместо 8PM будет 20:00, 7PM будет 19:00 и так далее.
-      Также добавь в сообщение пару кокетливых шуток 18+.
+      🌡 Температура:
+      - Максимальная: ${weatherData.maxTemp}°C
+      - Минимальная: ${weatherData.minTemp}°C
 
-      Убедись, что в сообщении есть эмодзи, и что шутки не слишком настойчивые, чтобы поддерживать игривый и легкий тон.
+      🌬 Ветер: до ${weatherData.maxWind} км/ч
+      Осадки: ${weatherData.chanceOfRain}% на дождь, ${weatherData.chanceOfSnow}% на снег
 
-      УБЕДИСЬ, ЧТО ТВОЕ СООЩЕНИЕ СООТВЕТСТВУЕТ ДАННЫМ ИЗ ТЗ.
-      УБЕДИСЬ, ЧТО ТВОЕ СООБЩЕНИЕ НА РУССКОМ ЯЗЫКЕ!`,
-      stream: false,
-      options: {
+      ☀️ Световой день:
+      - Восход: ${weatherData.sunrise}
+      - Закат: ${weatherData.sunset}
+
+      Почасовой прогноз:
+      ${hourlyForecastText}
+
+      Требования:
+      1. Начни с общей сводки (температура, осадки, ветер)
+      2. Добавь анализ почасовых изменений (когда ожидать потепление/похолодание)
+      3. Включи 1-2 шутки про погоду (но без пошлостей)
+      4. Добавь рекомендации по одежде
+      5. Используй эмодзи для наглядности
+      6. Сохраняй дружелюбный и позитивный тон
+      7. Длина: 5-7 предложений
+
+      Не пиши "<think>" или другие служебные пометки - только готовый прогноз!
+    `
+
+    const response = await axios.post(
+      TOGETHER_API_URL,
+      {
+        model: "deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free",
+        messages: [{ role: "user", content: strictPrompt }],
         temperature: 0.9,
-        max_tokens: 150,
-        top_p: 0.9,
-        frequency_penalty: 0.5,
-        presence_penalty: 0.5,
+        max_tokens: 800
       },
-    });
+      {
+        headers: {
+          "Authorization": `Bearer ${process.env.TOGETHER_API_KEY}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
 
-    const result = response.data;
-
-    if (!result.response) {
-      throw new Error('Хуевый прогноз погоды, нет ответа', result);
+    if (!response.data?.choices?.[0]?.message?.content) {
+      throw new Error('Неверный формат ответа от API');
     }
 
-    return result.response.trim();
+    const forecast = response.data.choices[0].message.content
+      .replace(/<think>.*<\/think>/gs, '')
+      .replace(/^[^а-яА-Я]*/, '')
+      .trim();
+
+    return forecast
   } catch (error) {
-    console.error("Ошибка при генерации прогноза погоды: ", error.message);
-    return `Хуевый прогноз погоды 🍆🍆🍆 
-Нет ответа от AI.
-Одевайтесь как по кайфу!💩💩💩`;
+    console.error("Ошибка генерации прогноза:", error.message);
+    return "Погодный робот на перекуре... Попробуйте позже! ☕";
   }
 }
 

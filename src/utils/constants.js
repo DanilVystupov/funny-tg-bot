@@ -1,7 +1,7 @@
 const TIME_SEND_MEME = '12:00'; // Отправка мема каждый день в 12:00
 const TIME_SEND_WEATHER_REPORT = '08:00'; // Отправка прогноза погоды каждый день в 08:00
 
-const OLLAMA_API_GENERATE = 'http://localhost:11434/api/generate';
+const TOGETHER_API_URL = "https://api.together.xyz/v1/chat/completions";
 const WEATHER_API_URL = 'https://api.weatherapi.com/v1/forecast.json';
 
 const FUNNY_DESCRIPTIONS = [
@@ -478,7 +478,7 @@ const STATES = {
 module.exports = {
   TIME_SEND_MEME,
   TIME_SEND_WEATHER_REPORT,
-  OLLAMA_API_GENERATE,
+  TOGETHER_API_URL,
   WEATHER_API_URL,
   FUNNY_DESCRIPTIONS,
   MONKEY_SEARCH_THEMES,
