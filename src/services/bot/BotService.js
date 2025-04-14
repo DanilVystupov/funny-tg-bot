@@ -11,7 +11,7 @@ const PredictionsService = require('./PredictionsService');
 
 class BotService {
   constructor() {
-    this.bot = new TelegramBot(process.env.BOT_TOKEN_LOCAL, { polling: true });
+    this.bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
     this.userData = {};
   }
 
