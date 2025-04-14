@@ -9,11 +9,19 @@ class PredictionCommand extends BaseCommand {
   execute() {
     this.bot.onText(/\/prediction/, async (msg) => {
       const chatId = msg.chat.id;
-      const prediction = getRandomPrediction(this.predictionsStore.predictionsArray);
-      
-      await this.bot.sendMessage(chatId, prediction);
-//       await this.bot.sendMessage(chatId, `Хочешь предложить свое предсказание?
-// Отправляй команду /add_prediction`);
+      const isGoodPrediction = Math.floor(Math.random() * 2);
+      const predictions = isGoodPrediction ? this.predictionsService.getGoodPredictions() : this.predictionsService.getBadPredictions();
+      const { prediction } = getRandomPrediction(predictions);
+
+      const header = isGoodPrediction
+        ? '✨ *Тебе улыбнулась удача!* ✨\n\nВселенная шепчет:' 
+        : '☠️ *Темные тучи на горизонте...* ☠️\n\nОракул предрекает:';
+
+      await this.bot.sendMessage(
+        chatId,
+        `${header}\n\n_"${prediction}"_`,
+        { parse_mode: 'Markdown' }
+      );
     });
   }
 }

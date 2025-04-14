@@ -1,10 +1,10 @@
 class BaseCommand {
   constructor(botService) {
     this.bot = botService.bot;
-    this.db = botService.db;
-    this.followers = botService.followers;
-    this.predictionsStore = botService.predictionsStore;
+    this.pgPool = botService.pgPool;
     this.userData = botService.userData;
+    this.followersService = botService.followersService;
+    this.predictionsService = botService.predictionsService;
   }
 
   execute() {
