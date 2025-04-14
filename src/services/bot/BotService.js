@@ -18,7 +18,7 @@ class BotService {
   injectDependencies(dependencies) {
     if (!dependencies.pgPool) throw new Error('Зависимость pgPool обязательна!');
     this.pgPool = dependencies.pgPool;
-
+    
     this.followersService = new FollowersService(this.pgPool);
     this.predictionsService = new PredictionsService(this.pgPool);
   }
@@ -27,24 +27,11 @@ class BotService {
     this.bot.on('polling_error', (msg) => console.log('polling_error: ', msg));
   }
 
-  async initialize() {
-    try {
-      await Promise.all([
-        this.followersService.loadFollowers(),
-        this.predictionsService.loadGoodPredictions(),
-        this.predictionsService.loadBadPredictions()
-      ]);
-    } catch (error) {
-      console.error('Ошибка при инициализации бота: ', error.message);
-      throw error;
-    }
-  }
-
   registerCommand(CommandClass) {
     new CommandClass(this).execute();
   }
 
-  async registerCommands() {
+  registerCommands() {
     this.registerCommand(StartCommand);
     this.registerCommand(StopCommand);
     this.registerCommand(PredictionCommand);
@@ -52,10 +39,16 @@ class BotService {
     this.registerCommand(WeatherCommand);
   }
 
+  async initialize() {
+    await this.followersService.loadFollowers();
+    await this.predictionsService.loadGoodPredictions();
+    await this.predictionsService.loadBadPredictions();
+  }
+
   async start() {
     this.setupErrorHandling();
     await this.initialize();
-    await this.registerCommands();
+    this.registerCommands();
   }
 }
 
