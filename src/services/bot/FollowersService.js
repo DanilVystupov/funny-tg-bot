@@ -20,7 +20,6 @@ class FollowersService {
       const result = await this.pgPool.query(`
         INSERT INTO followers (chatid, username)
         VALUES ($1, $2)
-        ON CONFLICT (chatid) DO UPDATE SET username = $2
         RETURNING *
       `, [chatid, username]);
 

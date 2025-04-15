@@ -7,14 +7,19 @@ class StopCommand extends BaseCommand {
   
   execute() {
     this.bot.onText(/\/stop/, async (msg) => {
-      const chatId = msg.chat.id;
-      
+      const chatId = String(msg.chat.id);
+      const hasFollower = this.followersService.hasFollower(chatId);
+
       try {
-        await this.followersService.removeFollower(chatId);
-        await this.bot.sendMessage(chatId, `Отписка завершена 😢`);
+        if (hasFollower) {
+          await this.followersService.removeFollower(chatId);
+          await this.bot.sendMessage(chatId, 'Отписка завершена 😢');
+        } else {
+          this.bot.sendMessage(chatId, 'Вы уже отписаны... \nДля возобновления бота /start')
+        }
       } catch (error) {
         console.error('Ошибка при удалении из followers: ', error);
-        throw error; 
+        throw error;
       }
     });
   }

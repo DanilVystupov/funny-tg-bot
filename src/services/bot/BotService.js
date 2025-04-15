@@ -40,9 +40,16 @@ class BotService {
   }
 
   async initialize() {
-    await this.followersService.loadFollowers();
-    await this.predictionsService.loadGoodPredictions();
-    await this.predictionsService.loadBadPredictions();
+    try {
+      await Promise.all([
+        this.followersService.loadFollowers(),
+        this.predictionsService.loadGoodPredictions(),
+        this.predictionsService.loadBadPredictions()
+      ])
+    } catch (error) {
+      console.error('Ошибка при инициализации бота: ', error.message);
+      throw error;
+    }
   }
 
   async start() {

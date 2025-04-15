@@ -6,7 +6,7 @@ class StartCommand extends BaseCommand {
   
   execute() {
     this.bot.onText(/\/start/, async (msg) => {
-      const chatId = msg.chat.id;
+      const chatId = String(msg.chat.id);
       const username = msg.from.username;
       const hasFollower = this.followersService.hasFollower(chatId);
 
@@ -19,9 +19,11 @@ class StartCommand extends BaseCommand {
           chatId,
           `Шалом, поговаривают, что в будущем я смогу стать ботом маминой подруги!
           
-/start - запустить/перазапустить бота
-/stop - остановить бота (оно вам не надо)))
-/prediction - получить самое точное предсказание`
+/start - запустить бота
+/stop - остановить бота
+/bibizyan - узнать какой ты сегодня бибизян
+/prediction - получить самое точное предсказание
+/weather - получить прогноз погоды`
         );
       } catch (error) {
         console.error('Ошибка при добавлении в followers: ', error);
