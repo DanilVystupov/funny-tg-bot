@@ -1,5 +1,6 @@
 require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
+const cron = require('node-cron');
 
 const StartCommand = require('./commands/StartCommand');
 const StopCommand = require('./commands/StopCommand');
@@ -52,10 +53,21 @@ class BotService {
     }
   }
 
+  setupDailyBibizyanMessages() {
+    cron.schedule('0 12 * * *', () => {
+      try {
+        this.followersService.sendDailyBibizyan();
+      } catch (error) {
+        console.error('Ошибка при установке отправки бибизян в 12:00: ', error.message);
+      }
+    })
+  }
+
   async start() {
     this.setupErrorHandling();
     await this.initialize();
     this.registerCommands();
+    this.setupDailyBibizyanMessages();
   }
 }
 

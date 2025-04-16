@@ -27,7 +27,6 @@ class StartCommand extends BaseCommand {
         );
       } catch (error) {
         console.error('Ошибка при добавлении в followers: ', error);
-        throw error;
       }
     });
   }

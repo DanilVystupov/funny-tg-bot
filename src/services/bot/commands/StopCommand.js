@@ -19,7 +19,6 @@ class StopCommand extends BaseCommand {
         }
       } catch (error) {
         console.error('Ошибка при удалении из followers: ', error);
-        throw error;
       }
     });
   }

@@ -15,6 +15,7 @@ class BibizyanCommand extends BaseCommand {
         await this.bot.sendAnimation(chatId, url, { caption: description });
       } catch (error) {
         console.error(`Ошибка отправки мема для ${chatId}:`, error.message);
+        this.bot.sendMessage(chatId, 'Упс... что-то пошло не так. Попробуйте еще раз');
       }
     })
   }

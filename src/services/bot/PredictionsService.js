@@ -12,7 +12,7 @@ class PredictionsService {
       return this._goodPredictions;
     } catch (error) {
       console.error('Ошибка при загрузке хороший предсказаний из БД: ', error.message);
-      throw error;
+      this.bot.sendMessage(chatId, 'Упс... что-то пошло не так. Попробуйте еще раз');
     }
   }
 
@@ -23,7 +23,7 @@ class PredictionsService {
       return this._badPredictions;
     } catch (error) {
       console.error('Ошибка при загрузке плохих предсказаний из БД: ', error.message);
-      throw error;
+      this.bot.sendMessage(chatId, 'Упс... что-то пошло не так. Попробуйте еще раз');
     }
   }
 

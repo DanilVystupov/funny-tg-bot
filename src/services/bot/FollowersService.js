@@ -1,3 +1,5 @@
+const { getRandomMonkeyGif } = require("../gifService");
+
 class FollowersService {
   constructor(pgPool) {
     this.pgPool = pgPool
@@ -45,6 +47,18 @@ class FollowersService {
     } catch (error) {
       console.error('Ошибка при удалении пользователя', error);
       throw error;
+    }
+  }
+
+  async sendDailyBibizyan() {
+    try {
+      for (const follower of this._followers) {
+        const chatid = follower.chatid;
+        const { url, description } = await getRandomMonkeyGif();
+        await this.bot.sendAnimation(chatid, url, { caption: description });
+      }
+    } catch (error) {
+      console.log('Ошибка при отправке ежедневных бибизян: ', error.message);
     }
   }
 
