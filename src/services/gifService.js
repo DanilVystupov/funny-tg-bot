@@ -1,6 +1,10 @@
 const axios = require("axios");
 
-const { MONKEY_SEARCH_THEMES, FUNNY_DESCRIPTIONS } = require("../utils/constants");
+const { 
+  MONKEY_SEARCH_THEMES, 
+  FUNNY_DESCRIPTIONS, 
+  TOGETHER_API_URL, 
+} = require("../utils/constants");
 const { randomizer } = require("../utils/helpers");
 
 async function getRandomMonkeyGif() {
@@ -27,7 +31,7 @@ async function getRandomGifUrl() {
       params: {
         key: process.env.TENOR_API_KEY,
         q: randomizer(MONKEY_SEARCH_THEMES),
-        limit: 100,
+        limit: 50,
         media_filter: 'minimal'
       },
       timeout: 5000
@@ -52,36 +56,68 @@ async function getRandomGifUrl() {
 
 async function generateGifDescription(gifUrl) {
   try {
-    const response = await axios.post('http://localhost:11434/api/generate', {
-      model: 'llama3',
-      prompt: `[INST]Только строго в этом формате:
-Сегодня ты: **Бибизян-тип** — описание эмодзи
-Где: 
-- тип=1 русское слово
-- описание=6-8 русских слов
-- 1 эмодзи в конце
-Пример: "Сегодня ты: **Бибизян-соня** — уже пятый раз пересматриваешь эту гифку 💤"
-Для гифки: ${gifUrl}[/INST]`,
-      stream: false,
-      options: {
+    const strictPrompt = `
+      ОТВЕТЬ ОДНИМ СООБЩЕНИЕМ БЕЗ РАССУЖДЕНИЙ.
+      Придумай смешное название для описания меменой/смешной гифки по url: ${gifUrl}.
+
+      В следющем формате:
+      Сегодня ты: **Бибизян-тип** — описание эмодзи
+        Где: 
+        - тип=1 русское слово
+        - описание=6-8 русских слов
+        - 1 эмодзи в конце
+
+      Примеры:
+      "Сегодня ты: **Бибизян-соня** — уже пятый раз пересматриваешь эту гифку 💤",
+      "Сегодня ты: **Бубнезный бибизян** — несешь чушь, но звучит эпично 🎤", 
+      "Сегодня ты: **Бибизян-зумер** — работаешь 5 минут, устал на 5 часов 📱"
+
+      ПРИМЕРЫ НЕ ИСПОЛЬЗУЙ В ФИНАЛЬНОМ ОТВЕТЕ.
+
+      Темы могут быть абсолютно разными:
+        - Состояния усталости
+        - Работа/учеба
+        - Эмоции/настроение
+        - Ситуативные
+        - Абсурдные
+        - Интернет/мемы
+        - Бытовуха
+      ОТВЕТЬ ОДНИМ СООБЩЕНИЕМ БЕЗ РАССУЖДЕНИЙ.
+    `
+
+    const response = await axios.post(
+      TOGETHER_API_URL,
+      {
+        model: "deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free",
+        messages: [{ role: "user", content: strictPrompt }],
         temperature: 0.9,
-        max_tokens: 150,
-        top_p: 0.9,
-        frequency_penalty: 0.5,
-        presence_penalty: 0.5,
-        stop: ['\n']
+        max_tokens: 800
+      },
+      {
+        headers: {
+          "Authorization": `Bearer ${process.env.TOGETHER_API_KEY}`,
+          "Content-Type": "application/json"
+        }
       }
-    });
+    );
 
-    let result = response.data.response.trim();
 
-    if (!result.startsWith('Сегодня ты:')) {
+    if (!response.data?.choices?.[0]?.message?.content) {
+      throw new Error('Неверный формат ответа от API');
+    }
+
+    const result = response.data.choices[0].message.content
+      .replace(/<think>.*<\/think>/gs, '')
+      .replace(/^[^а-яА-Я]*/, '')
+      .trim();
+
+    if (!result.includes('Сегодня ты:')) {
       throw new Error(`Формат нарушен: ${result}`);
     }
 
     return result;
   } catch (error) {
-    console.error('Ошибка:', error.message);
+    console.error('Ошибка при генерации описания для гифки с бибизяном:', error.message);
     return randomizer(FUNNY_DESCRIPTIONS);
   }
 }

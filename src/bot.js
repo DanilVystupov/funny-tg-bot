@@ -1,9 +1,7 @@
 const BotService = require('./services/bot/BotService');
 const { pgPool } = require('./database/db');
 
-const botService = new BotService();
-
-botService.injectDependencies({ pgPool });
+const botService = new BotService({ pgPool });
 
 botService.start();
 

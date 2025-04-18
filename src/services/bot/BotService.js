@@ -11,15 +11,11 @@ const FollowersService = require('./FollowersService');
 const PredictionsService = require('./PredictionsService');
 
 class BotService {
-  constructor() {
+  constructor({ pgPool }) {
     this.bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
     this.userData = {};
-  }
+    this.pgPool = pgPool;
 
-  injectDependencies(dependencies) {
-    if (!dependencies.pgPool) throw new Error('Зависимость pgPool обязательна!');
-    this.pgPool = dependencies.pgPool;
-    
     this.followersService = new FollowersService(this.pgPool);
     this.predictionsService = new PredictionsService(this.pgPool);
   }
