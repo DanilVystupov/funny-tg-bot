@@ -53,21 +53,19 @@ class BotService {
     }
   }
 
-  setupDailyBibizyanMessages() {
-    cron.schedule('0 12 * * *', () => {
-      try {
-        this.followersService.sendDailyBibizyan();
-      } catch (error) {
-        console.error('Ошибка при установке отправки бибизян в 12:00: ', error.message);
-      }
-    })
+  async setupDailyBibizyanMessages() {
+    try {
+      await this.followersService.sendDailyBibizyan();
+    } catch (error) {
+      console.error('Ошибка при установке отправки бибизян в 12:00: ', error.message);
+    }
   }
 
   async start() {
     this.setupErrorHandling();
     await this.initialize();
     this.registerCommands();
-    this.setupDailyBibizyanMessages();
+    cron.schedule('* 12 * * *', this.setupDailyBibizyanMessages)
   }
 }
 
