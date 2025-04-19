@@ -10,6 +10,8 @@ const WeatherCommand = require('./commands/WeatherCommand');
 const FollowersService = require('./FollowersService');
 const PredictionsService = require('./PredictionsService');
 
+const { TIME_SEND_MEME } = require('../../utils/constants');
+
 class BotService {
   constructor({ pgPool }) {
     this.bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
@@ -50,18 +52,20 @@ class BotService {
   }
 
   async setupDailyBibizyanMessages() {
-    try {
-      await this.followersService.sendDailyBibizyan();
-    } catch (error) {
-      console.error('Ошибка при установке отправки бибизян в 12:00: ', error.message);
-    }
+    cron.schedule('0 12 * * *', async () => {
+      try {
+        await this.followersService.sendDailyBibizyan();
+      } catch (error) {
+        console.error(`Ошибка при установке отправки бибизян в ${TIME_SEND_MEME}: `, error.message);
+      }
+    })
   }
 
   async start() {
     this.setupErrorHandling();
     await this.initialize();
     this.registerCommands();
-    cron.schedule('* 12 * * *', this.setupDailyBibizyanMessages)
+    await this.setupDailyBibizyanMessages();
   }
 }
 
