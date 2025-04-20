@@ -10,7 +10,10 @@ class PredictionCommand extends BaseCommand {
     this.bot.onText(/\/prediction/, async (msg) => {
       const chatId = msg.chat.id;
       const isGoodPrediction = Math.floor(Math.random() * 2);
-      const predictions = isGoodPrediction ? this.predictionsService.getGoodPredictions() : this.predictionsService.getBadPredictions();
+      const goodPredictions = await this.predictionsService.getGoodPredictions();
+      const badPredictions = await this.predictionsService.getBadPredictions();
+
+      const predictions = isGoodPrediction ? goodPredictions : badPredictions;
       const { prediction } = getRandomPrediction(predictions);
 
       const header = isGoodPrediction

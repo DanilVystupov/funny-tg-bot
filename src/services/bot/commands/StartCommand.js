@@ -8,7 +8,7 @@ class StartCommand extends BaseCommand {
     this.bot.onText(/\/start/, async (msg) => {
       const chatId = String(msg.chat.id);
       const username = msg.from.username;
-      const hasFollower = this.followersService.hasFollower(chatId);
+      const hasFollower = await this.followersService.hasFollower(chatId);
 
       try {
         if (!hasFollower) {

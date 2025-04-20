@@ -8,7 +8,7 @@ class StopCommand extends BaseCommand {
   execute() {
     this.bot.onText(/\/stop/, async (msg) => {
       const chatId = String(msg.chat.id);
-      const hasFollower = this.followersService.hasFollower(chatId);
+      const hasFollower = await this.followersService.hasFollower(chatId);
 
       try {
         if (hasFollower) {

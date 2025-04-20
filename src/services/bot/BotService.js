@@ -18,8 +18,8 @@ class BotService {
     this.userData = {};
     this.pgPool = pgPool;
 
-    this.followersService = new FollowersService(this.pgPool);
-    this.predictionsService = new PredictionsService(this.pgPool);
+    this.followersService = new FollowersService(this.pgPool, this.bot);
+    this.predictionsService = new PredictionsService(this.pgPool, this.bot);
   }
 
   setupErrorHandling() {
@@ -38,19 +38,6 @@ class BotService {
     this.registerCommand(WeatherCommand);
   }
 
-  async initialize() {
-    try {
-      await Promise.all([
-        this.followersService.loadFollowers(),
-        this.predictionsService.loadGoodPredictions(),
-        this.predictionsService.loadBadPredictions()
-      ])
-    } catch (error) {
-      console.error('Ошибка при инициализации бота: ', error.message);
-      throw error;
-    }
-  }
-
   async setupDailyBibizyanMessages() {
     cron.schedule('0 12 * * *', async () => {
       try {
@@ -62,10 +49,9 @@ class BotService {
   }
 
   async start() {
-    this.setupErrorHandling();
-    await this.initialize();
-    this.registerCommands();
     await this.setupDailyBibizyanMessages();
+    this.setupErrorHandling();
+    this.registerCommands();
   }
 }
 
