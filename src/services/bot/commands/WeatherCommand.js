@@ -30,7 +30,7 @@ class WeatherCommand extends BaseCommand {
           return this.bot.sendMessage(chatId, 'Отмена успешно выполнена');
         }
         
-        this.bot.sendMessage(chatId, `Состаляю прогноз для города ${city}...`);
+        this.bot.sendMessage(chatId, `Составляю прогноз для города ${city}...`);
         const weatherReport = await generateWeatherReport(city);
         delete this.userData[chatId];
         await this.bot.sendMessage(chatId, weatherReport);

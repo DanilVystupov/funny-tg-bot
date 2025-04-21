@@ -1,3 +1,4 @@
+const { delay } = require("../../utils/helpers");
 const { getRandomMonkeyGif } = require("../gifService");
 
 class FollowersService {
@@ -33,15 +34,18 @@ class FollowersService {
   }
 
   async sendDailyBibizyan() {
+    console.log('sendDailyBibizyan вызван в', new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }));
     try {
       const followers = await this.getFollowers();
       for (const follower of followers) {
-        const chatid = follower.chatid;
+        const { chatid, username } = follower;
         const { url, description } = await getRandomMonkeyGif();
         await this.bot.sendAnimation(chatid, url, { caption: description });
+        await delay(1000);
+        console.log(`Бибизян успешно отправлен для ${username}`);
       }
     } catch (error) {
-      console.error('Ошибка при отправке ежедневных бибизян: ', error.message);
+      console.error('Ошибка при отправке ежедневных бибизян: ', error);
     }
   }
 

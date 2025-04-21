@@ -15,8 +15,13 @@ function randomizer(array) {
   return array[Math.floor(Math.random() * array.length)];
 }
 
+const delay = async (ms) => {
+  new Promise(resolve => setTimeout(resolve, ms));
+}
+
 module.exports = {
   formatDate,
   randomizer,
-  getDateInYYYYMMDD
+  getDateInYYYYMMDD,
+  delay
 };
