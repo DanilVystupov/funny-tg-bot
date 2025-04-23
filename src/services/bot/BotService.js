@@ -12,6 +12,7 @@ const WeatherCommand = require('./commands/WeatherCommand');
 const FollowersService = require('./FollowersService');
 const PredictionsService = require('./PredictionsService');
 const MailingCommand = require('./commands/MailingCommand');
+const DescriptionsService = require('./DescriptionsService');
 
 class BotService {
   constructor({ pgPool }) {
@@ -19,7 +20,8 @@ class BotService {
     this.userData = {};
     this.pgPool = pgPool;
 
-    this.followersService = new FollowersService(this.pgPool, this.bot);
+    this.descriptionsService = new DescriptionsService(this.pgPool, this.bot);
+    this.followersService = new FollowersService(this.pgPool, this.bot, this.descriptionsService);
     this.predictionsService = new PredictionsService(this.pgPool, this.bot);
   }
 

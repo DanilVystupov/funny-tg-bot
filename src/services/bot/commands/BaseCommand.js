@@ -5,6 +5,7 @@ class BaseCommand {
     this.userData = botService.userData;
     this.followersService = botService.followersService;
     this.predictionsService = botService.predictionsService;
+    this.descriptionsService = botService.descriptionsService;
   }
 
   execute() {

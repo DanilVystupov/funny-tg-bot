@@ -1,16 +1,12 @@
 const axios = require("axios");
 
-const { 
-  MONKEY_SEARCH_THEMES, 
-  FUNNY_DESCRIPTIONS, 
-  TOGETHER_API_URL, 
-} = require("../utils/constants");
+const { MONKEY_SEARCH_THEMES, TOGETHER_API_URL } = require("../utils/constants");
 const { randomizer } = require("../utils/helpers");
 
-async function getRandomMonkeyGif() {
+async function getRandomMonkeyGif(descriptions) {
   try {
     const url = await getRandomGifUrl();
-    const description = await generateGifDescription();
+    const description = await generateGifDescription(url, descriptions);
 
     return {
       url,
@@ -20,7 +16,7 @@ async function getRandomMonkeyGif() {
     console.error('Ошибка при получении гифки:', error.stack);
     return {
       url: 'https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExdHExNHY2OGdub2hxbXAyM3VlZjE0cDhydXBoOGZzaW8ydnN3cDFzcSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/MbAKIY1bYnNoo27eWf/giphy.gif',
-      description: 'Эммм... Что-то пошло не так :('
+      description: 'Эммм... Что-то пошло не так :(  Попробуй еще раз /bibizyan'
     };
   }
 }
@@ -54,7 +50,7 @@ async function getRandomGifUrl() {
   }
 }
 
-async function generateGifDescription(gifUrl) {
+async function generateGifDescription(gifUrl, descriptions) {
   try {
     const strictPrompt = `
       ОТВЕТЬ ОДНИМ СООБЩЕНИЕМ БЕЗ РАССУЖДЕНИЙ.
@@ -87,7 +83,7 @@ async function generateGifDescription(gifUrl) {
         - Интернет/мемы
         - Бытовуха
       ОТВЕТЬ ОДНИМ СООБЩЕНИЕМ БЕЗ РАССУЖДЕНИЙ.
-      ОТВЕТ МАКСИМУМ 30 СИМВОЛОВ!
+      ОТВЕТ МАКСИМУМ 80 СИМВОЛОВ!
     `
 
     const response = await axios.post(
@@ -118,14 +114,14 @@ async function generateGifDescription(gifUrl) {
 
     const hasEnglishLetters = /[a-zA-Z]/.test(result);
 
-    if (!result.includes('Сегодня ты:') || result.length > 30 || hasEnglishLetters) {
+    if (!result.includes('Сегодня ты:') || result.length > 80 || hasEnglishLetters) {
       throw new Error(`Формат нарушен: ${result}`);
     }
 
     return result;
   } catch (error) {
     console.error('Ошибка при генерации описания для гифки с бибизяном:', error.message);
-    return randomizer(FUNNY_DESCRIPTIONS);
+    return randomizer(descriptions);
   }
 }
 

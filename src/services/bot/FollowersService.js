@@ -2,9 +2,10 @@ const { delay } = require("../../utils/helpers");
 const { getRandomMonkeyGif } = require("../gifService");
 
 class FollowersService {
-  constructor(pgPool, bot) {
+  constructor(pgPool, bot, descriptionsService) {
     this.pgPool = pgPool;
     this.bot = bot;
+    this.descriptionsService = descriptionsService;
   }
 
   async addFollower(chatid, username) {
@@ -37,9 +38,10 @@ class FollowersService {
     console.log('sendDailyBibizyan вызван в', new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }));
     try {
       const followers = await this.getFollowers();
+      const descriptions = await this.descriptionsService.getDescriptions();
       for (const follower of followers) {
         const { chatid, username } = follower;
-        const { url, description } = await getRandomMonkeyGif();
+        const { url, description } = await getRandomMonkeyGif(descriptions);
         await this.bot.sendAnimation(chatid, url, { caption: description });
         await delay(1000);
         console.log(`Бибизян успешно отправлен для ${username}`);
