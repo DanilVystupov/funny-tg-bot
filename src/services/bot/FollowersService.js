@@ -35,19 +35,19 @@ class FollowersService {
   }
 
   async sendDailyBibizyan() {
-    console.log('sendDailyBibizyan вызван в', new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }));
-    try {
-      const followers = await this.getFollowers();
-      const descriptions = await this.descriptionsService.getDescriptions();
-      for (const follower of followers) {
-        const { chatid, username } = follower;
+    const followers = await this.getFollowers();
+    const descriptions = await this.descriptionsService.getDescriptions();
+    for (const follower of followers) {
+      const { chatid, username } = follower;
+      try {
         const { url, description } = await getRandomMonkeyGif(descriptions);
+        console.log(`Отправка для ${username} (${chatid}): URL=${url}, description=${description}`);
         await this.bot.sendAnimation(chatid, url, { caption: description });
-        await delay(1000);
-        console.log(`Бибизян успешно отправлен для ${username}`);
+        console.log(`Бибизян успешно отправлен для ${username} (${chatid})`);
+      } catch (error) {
+        console.error(`Ошибка отправки мема для ${username} (${chatid}):`, error.stack);
       }
-    } catch (error) {
-      console.error('Ошибка при отправке ежедневных бибизян: ', error);
+      await delay(2000);
     }
   }
 

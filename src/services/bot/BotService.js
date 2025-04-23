@@ -43,7 +43,6 @@ class BotService {
   }
 
   async setupDailyBibizyanMessages() {
-    console.log('Вход в setupDailyBibizyanMessages');
     cron.schedule('0 12 * * *', async () => {
       console.log(`setupDailyBibizyanMessages начинает выполнение в ${new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })} (Europe/Moscow)`);
       try {
@@ -54,7 +53,6 @@ class BotService {
     }, {
       timezone: 'Europe/Moscow'
     });
-    console.log('Выход из setupDailyBibizyanMessages');
   }
 
   async start() {

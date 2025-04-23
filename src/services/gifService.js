@@ -6,12 +6,32 @@ const { randomizer } = require("../utils/helpers");
 async function getRandomMonkeyGif(descriptions) {
   try {
     const url = await getRandomGifUrl();
-    const description = await generateGifDescription(url, descriptions);
+    // Проверка доступности URL
+    const responseUrl = await axios.head(url, { timeout: 5000 });
+    if (responseUrl.status !== 200) {
+      throw new Error(`Недопустимый URL: ${url}`);
+    }
 
-    return {
-      url,
-      description
-    };
+    // Проверка размера файла
+    // Для ботов: Максимальный размер файла (GIF, фото, видео и т.д.) — 50 MB
+    const contentLength = responseUrl.headers['content-length'];
+    if (contentLength &&  contentLength > 50 * 1024 * 1024) {
+      throw new Error(`GIF слишком большой: ${contentLength} байт`);
+    }
+    
+    const responseDescription = await generateGifDescription(url, descriptions);
+    // Проверка типа и структуры ответа
+    let description
+    if (typeof responseDescription === 'string') {
+      description = responseDescription;
+    } else if (responseDescription && typeof responseDescription === 'object') {
+      description = responseDescription?.description || JSON.stringify(responseDescription);
+    } else {
+      console.log('responseDescription = ', {...responseDescription});
+      throw new Error(`Некорректный тип описания: ${typeof responseDescription}`);
+    }
+
+    return { url, description };
   } catch (error) {
     console.error('Ошибка при получении гифки:', error.stack);
     return {
@@ -98,7 +118,8 @@ async function generateGifDescription(gifUrl, descriptions) {
         headers: {
           "Authorization": `Bearer ${process.env.TOGETHER_API_KEY}`,
           "Content-Type": "application/json"
-        }
+        },
+        timeout: 30000
       }
     );
 
@@ -114,7 +135,7 @@ async function generateGifDescription(gifUrl, descriptions) {
 
     const hasEnglishLetters = /[a-zA-Z]/.test(result);
 
-    if (!result.includes('Сегодня ты:') || result.length > 80 || hasEnglishLetters) {
+    if (!result.includes('Сегодня ты:') || result.length < 20 || result.length > 80 || hasEnglishLetters) {
       throw new Error(`Формат нарушен: ${result}`);
     }
 

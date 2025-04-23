@@ -1,6 +1,5 @@
 const { getRandomMonkeyGif } = require('../../gifService');
 const BaseCommand = require('./BaseCommand');
-
 class BibizyanCommand extends BaseCommand {
   constructor(botService) {
     super(botService);
@@ -8,15 +7,16 @@ class BibizyanCommand extends BaseCommand {
 
   execute() {
     this.bot.onText(/\/bibizyan/, async (msg) => {
-      const chatId = msg.chat.id;
+      const chatid = msg.chat.id;
+      const username = msg.from.username;
+      this.bot.sendMessage(chatid, 'Определяю кто ты сегодня...');
+      const descriptions = await this.descriptionsService.getDescriptions();
       try {
-        this.bot.sendMessage(chatId, 'Определяю кто ты сегодня...');
-        const descriptions = await this.descriptionsService.getDescriptions();
         const { url, description } = await getRandomMonkeyGif(descriptions);
-        await this.bot.sendAnimation(chatId, url, { caption: description });
+        await this.bot.sendAnimation(chatid, url, { caption: description });
       } catch (error) {
-        console.error(`Ошибка отправки мема для ${chatId}:`, error.message);
-        this.bot.sendMessage(chatId, 'Упс... что-то пошло не так. Попробуй еще раз /bibizyan');
+        console.error(`Ошибка отправки мема для ${username} (${chatid}):`, error.stack);
+        this.bot.sendMessage(chatid, 'Упс... что-то пошло не так. Попробуй еще раз /bibizyan');
       }
     })
   }
